@@ -1,10 +1,12 @@
 package main
 
 import (
+	"context"
 	"encoding/json"
 	"fmt"
 	"net/http"
 	"os"
+	"os/signal"
 	"sync"
 	"time"
 )
@@ -118,11 +120,27 @@ func main() {
 		}
 	}()
 
-	fmt.Println("Server starting at port", port)
+	quit := make(chan os.Signal, 1)
 
-	err := http.ListenAndServe(":"+port, nil)
+	signal.Notify(quit, os.Interrupt)
+
+	<-quit
+
+	fmt.Println("\n Shutdown signal received")
+
+	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+
+	defer cancel()
+
+	fmt.Println("Shutting down server gracefully...")
+
+	err := server.Shutdown(ctx)
 
 	if err != nil {
-		fmt.Println("Server failed", err)
+
+		fmt.Println("Graceful shutdown failed:", err)
+		return
 	}
+
+	fmt.Println("Server exited cleanly")
 }
