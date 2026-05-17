@@ -18,12 +18,12 @@ var totalRequests int
 var mutex sync.Mutex
 
 type HealthRespone struct {
-	Status string "json:status"
-	Uptime string "json:uptime"
+	Status string `json:"status"`
+	Uptime string `json:"uptime"`
 }
 
 type StatsResponse struct {
-	TotalRequests int "json:total_requests"
+	TotalRequests int `json:"total_requests"`
 }
 
 func incrementRequestCount() {
