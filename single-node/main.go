@@ -137,7 +137,6 @@ func main() {
 	err := server.Shutdown(ctx)
 
 	if err != nil {
-
 		fmt.Println("Graceful shutdown failed:", err)
 		return
 	}
