@@ -4,9 +4,12 @@ import (
 	"fmt"
 	"hash/fnv"
 	"sort"
+	"sync"
 )
 
 type Ring struct {
+	mu sync.RWMutex
+
 	virtualNodes int
 
 	positions []int
@@ -32,6 +35,11 @@ func hash(key string) int {
 }
 
 func (r *Ring) AddNode(node string) {
+
+	r.mu.Lock()
+
+	defer r.mu.Unlock()
+
 	for i := 0; i < r.virtualNodes; i++ {
 		virtualKey := fmt.Sprintf("%s#%d", node, i)
 
@@ -42,7 +50,28 @@ func (r *Ring) AddNode(node string) {
 		r.nodes[position] = node
 
 	}
-
 	sort.Ints(r.positions)
+}
 
+func (r *Ring) GetNode(key string) string {
+
+	r.mu.RLock()
+
+	defer r.mu.RUnlock()
+
+	if len(r.positions) == 0 {
+		return ""
+	}
+
+	hashValue := hash(key)
+
+	index := sort.SearchInts(r.positions, hashValue)
+
+	if index == len(r.positions) {
+		index = 0
+	}
+
+	position := r.positions[index]
+
+	return r.nodes[position]
 }
