@@ -2,29 +2,32 @@ package main
 
 import (
 	"fmt"
+	"net/http"
 
+	"consistent-hash-ambassador/internal/proxy"
 	"consistent-hash-ambassador/internal/ring"
 )
 
 func main() {
 
-	r := ring.New(5)
+	r := ring.New(10)
 
 	r.AddNode("backend-A")
 	r.AddNode("backend-B")
 	r.AddNode("backend-C")
 
-	keys := []string{
-		"user-1",
-		"user-2",
-		"user-3",
-		"user-4",
-	}
+	ambassador := proxy.New(r)
 
-	for _, key := range keys {
+	mux := http.NewServeMux()
 
-		node := r.GetNode(key)
+	mux.Handle("/", ambassador)
 
-		fmt.Printf("%s -> %s\n", key, node)
+	fmt.Println("Ambassador listening on :8080")
+
+	err := http.ListenAndServe(":8080", mux)
+
+	if err != nil {
+
+		fmt.Println("Server failed:", err)
 	}
 }
