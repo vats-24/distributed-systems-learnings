@@ -10,7 +10,7 @@ import (
 
 func main() {
 
-	r := ring.New(10)
+	r := ring.New(1)
 
 	r.AddNode("http://localhost:9001")
 	r.AddNode("http://localhost:9002")

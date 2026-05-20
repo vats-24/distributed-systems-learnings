@@ -45,6 +45,8 @@ func (r *Ring) AddNode(node string) {
 
 		position := hash(virtualKey)
 
+		fmt.Println(position)
+
 		r.positions = append(r.positions, position)
 
 		r.nodes[position] = node
@@ -74,4 +76,43 @@ func (r *Ring) GetNode(key string) string {
 	position := r.positions[index]
 
 	return r.nodes[position]
+}
+
+func (r *Ring) GetNodes(key string) []string {
+	r.mu.Lock()
+
+	defer r.mu.Unlock()
+
+	if len(r.positions) == 0 {
+		return nil
+	}
+
+	hashValue := hash(key)
+
+	index := sort.SearchInts(r.positions, hashValue)
+
+	if index == len(r.positions) {
+		index = 0
+	}
+
+	seen := make(map[string]bool)
+
+	var result []string
+
+	for i := 0; i < len(r.positions); i++ {
+
+		position := r.positions[(index+i)%len(r.positions)]
+
+		node := r.nodes[position]
+
+		if seen[node] {
+			continue
+		}
+
+		seen[node] = true
+
+		result = append(result, node)
+
+	}
+	return result
 }

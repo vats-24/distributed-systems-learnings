@@ -2,6 +2,7 @@ package proxy
 
 import (
 	"encoding/json"
+	"fmt"
 	"net/http"
 	"net/http/httputil"
 	"net/url"
@@ -34,22 +35,41 @@ func (a *Ambassador) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	node := a.ring.GetNode(shardKey)
+	// node := a.ring.GetNode(shardKey)
+	nodes := a.ring.GetNodes(shardKey)
 
-	targetURL, err := url.Parse(node)
+	for _, node := range nodes {
+		targetURL, err := url.Parse(node)
 
-	if err != nil {
+		if err != nil {
+			fmt.Println("Invalid backend url", node)
 
-		w.WriteHeader(http.StatusInternalServerError)
+			continue
+		}
 
-		json.NewEncoder(w).Encode(map[string]string{
-			"error": "invalid backend URL",
-		})
+		success := true
+		proxy := httputil.NewSingleHostReverseProxy(targetURL)
 
-		return
+		proxy.ErrorHandler = func(w http.ResponseWriter, r *http.Request, err error) {
+			fmt.Println("Backend failed:", node)
+			fmt.Println("Error:", err)
+
+			success = false
+		}
+
+		proxy.ServeHTTP(w, r)
+
+		if success {
+
+			return
+		}
 	}
 
-	proxy := httputil.NewSingleHostReverseProxy(targetURL)
+	w.Header().Set("Content-Type", "application/json")
 
-	proxy.ServeHTTP(w, r)
+	w.WriteHeader(http.StatusBadGateway)
+
+	json.NewEncoder(w).Encode(map[string]string{
+		"error": "all backends unavailable",
+	})
 }
