@@ -3,6 +3,8 @@ package proxy
 import (
 	"encoding/json"
 	"net/http"
+	"net/http/httputil"
+	"net/url"
 
 	"consistent-hash-ambassador/internal/ring"
 )
@@ -34,10 +36,20 @@ func (a *Ambassador) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 
 	node := a.ring.GetNode(shardKey)
 
-	w.Header().Set("Content-Type", "application/json")
+	targetURL, err := url.Parse(node)
 
-	json.NewEncoder(w).Encode(map[string]string{
-		"shard_key": shardKey,
-		"backend":   node,
-	})
+	if err != nil {
+
+		w.WriteHeader(http.StatusInternalServerError)
+
+		json.NewEncoder(w).Encode(map[string]string{
+			"error": "invalid backend URL",
+		})
+
+		return
+	}
+
+	proxy := httputil.NewSingleHostReverseProxy(targetURL)
+
+	proxy.ServeHTTP(w, r)
 }

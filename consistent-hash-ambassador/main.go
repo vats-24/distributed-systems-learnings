@@ -12,9 +12,9 @@ func main() {
 
 	r := ring.New(10)
 
-	r.AddNode("backend-A")
-	r.AddNode("backend-B")
-	r.AddNode("backend-C")
+	r.AddNode("http://localhost:9001")
+	r.AddNode("http://localhost:9002")
+	r.AddNode("http://localhost:9003")
 
 	ambassador := proxy.New(r)
 
