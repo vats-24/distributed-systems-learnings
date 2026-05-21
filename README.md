@@ -6,7 +6,7 @@ A minimal, high-performance infrastructure project built in Go to deeply underst
 
 Instead of forcing the backend to handle HTTPS/TLS directly, this separate sidecar proxy process intercepts HTTPS traffic, terminates the TLS layer, and forwards plain HTTP traffic to the underlying backend service.
 
-> 📂 **Location:** This project lives inside the [`tls-sidecar-proxy`](https://github.com/your-username/distributed-systems-learnings/tree/main/tls-sidecar-proxy) folder of the `distributed-systems-learnings` repository.
+> 📂 **Location:** This project lives inside the [`tls-sidecar-proxy`](https://github.com/vats-24/distributed-systems-learnings/tree/main/tls-sidecar-proxy) folder of the `distributed-systems-learnings` repository.
 
 ---
 
@@ -46,10 +46,5 @@ Infrastructure engineering is deceptively compact; less than 200 lines of code u
 - **Network Proxies:** Shifting perspective from simply _using_ ingress tools to understanding low-level reverse proxy mechanics, connection forwarding, and header manipulation.
 
 ```
-
-***
-
-### 💡 Quick Tip for your Repo
-Make sure to replace your-username in the folder link with your actual GitHub username so the link resolves perfectly!
 
 ```
