@@ -44,7 +44,3 @@ Infrastructure engineering is deceptively compact; less than 200 lines of code u
 - **Concurrency & Synchronization:** Managing shared mutable state and eliminating race conditions using `sync.Mutex`.
 - **Asynchronous Coordination:** Utilizing Go channels and `context` for clean timeout and cancellation propagation.
 - **Network Proxies:** Shifting perspective from simply _using_ ingress tools to understanding low-level reverse proxy mechanics, connection forwarding, and header manipulation.
-
-```
-
-```
