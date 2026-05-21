@@ -19,6 +19,7 @@ var FoundationRequests = prometheus.NewGaugeVec(
 )
 
 func Register() {
+
 	prometheus.MustRegister(AdapterScrapesTotal)
 
 	prometheus.MustRegister(FoundationRequests)

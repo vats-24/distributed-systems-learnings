@@ -9,11 +9,14 @@ import (
 )
 
 func main() {
-	metrics.Register()
-
-	http.Handle("/metrics", promhttp.Handler())
 
 	fmt.Println("Metrics adapter listening on :9090")
+
+	metrics.Register()
+
+	// go scraper.Start()
+
+	http.Handle("/metrics", promhttp.Handler())
 
 	err := http.ListenAndServe(":9090", nil)
 
