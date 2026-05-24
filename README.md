@@ -1,10 +1,3 @@
-Here is the updated, unified `README.md` containing your new **Prometheus Metrics Adapter**.
-
-I have integrated it seamlessly, updated the master table, and consolidated your new takeaways into the core engineering section at the bottom.
-
----
-
-````markdown
 # Distributed Systems Learnings
 
 A production-focused sandbox showcasing low-level infrastructure primitives, network routing architectures, and concurrent systems design implemented from scratch in Go.
@@ -34,6 +27,7 @@ Instead of forcing a core backend application to handle HTTPS/TLS directly, this
 ```text
 Client (HTTPS) ---> TLS Reverse Proxy (:8443) ---> HTTP ---> Backend Service (:8080)
 ```
+
 ````
 
 The backend remains entirely decoupled from and unaware of the TLS layer, mimicking production ingress and sidecar patterns (like Envoy or NGINX) at a micro-scale.
@@ -111,3 +105,4 @@ Building these infrastructure pieces highlights that systems complexity comes fr
 ```
 
 ```
+````
