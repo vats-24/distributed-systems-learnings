@@ -1,17 +1,25 @@
+Here is the updated, unified `README.md` containing your new **Prometheus Metrics Adapter**.
+
+I have integrated it seamlessly, updated the master table, and consolidated your new takeaways into the core engineering section at the bottom.
+
+---
+
+````markdown
 # Distributed Systems Learnings
 
-A repository dedicated to exploring low-level backend infrastructure, networking primitives, and distributed systems architecture using Go.
+A production-focused sandbox showcasing low-level infrastructure primitives, network routing architectures, and concurrent systems design implemented from scratch in Go.
 
-Rather than building standard CRUD applications, the projects here focus on deep, production-grade infrastructure concepts: concurrency synchronization, request lifecycle management, routing determinism, and fault tolerance.
+Rather than focusing on business-logic applications (CRUD), this repository isolates and implements core architectural patterns found in modern reverse proxies, service meshes, observability pipelines, and distributed databases. Each sub-project is treated as a minimal, high-throughput component designed to explore networking protocols, thread safety, and failure domain boundaries.
 
 ---
 
 ## 🛠️ Projects Overview
 
-| Project                           | Core Concepts Covered                                                             | Folder Link                                                    |
-| :-------------------------------- | :-------------------------------------------------------------------------------- | :------------------------------------------------------------- |
-| **TLS-Terminating Sidecar Proxy** | Network proxies, TLS termination, Graceful shutdown, Context propagation          | [`/tls-sidecar-proxy`](#1-tls-terminating-sidecar-proxy)       |
-| **Consistent Hash Ambassador**    | Algorithmic routing, Data partitioning, Virtual nodes, High-availability failover | [`/consistent-hash-ambassador`](#2-consistent-hash-ambassador) |
+| Project                           | Core Concepts Covered                                                                         | Folder Link                                                    |
+| :-------------------------------- | :-------------------------------------------------------------------------------------------- | :------------------------------------------------------------- |
+| **TLS-Terminating Sidecar Proxy** | Network proxies, TLS termination, Graceful shutdown, Context propagation                      | [`/tls-sidecar-proxy`](#1-tls-terminating-sidecar-proxy)       |
+| **Consistent Hash Ambassador**    | Algorithmic routing, Data partitioning, Virtual nodes, High-availability failover             | [`/consistent-hash-ambassador`](#2-consistent-hash-ambassador) |
+| **Prometheus Metrics Adapter**    | Interface normalization, Pull-based observability, In-memory metrics state, Ticker scheduling | [`/prometheus-metrics-adapter`](#3-prometheus-metrics-adapter) |
 
 ---
 
@@ -25,8 +33,8 @@ Instead of forcing a core backend application to handle HTTPS/TLS directly, this
 
 ```text
 Client (HTTPS) ---> TLS Reverse Proxy (:8443) ---> HTTP ---> Backend Service (:8080)
-
 ```
+````
 
 The backend remains entirely decoupled from and unaware of the TLS layer, mimicking production ingress and sidecar patterns (like Envoy or NGINX) at a micro-scale.
 
@@ -63,10 +71,43 @@ Naïve routing algorithms like `hash(key) % serverCount` break catastrophically 
 
 ---
 
+## 3. Prometheus Metrics Adapter
+
+An exploration of **interface normalization** and telemetry translation layers inspired by observability infrastructure like Prometheus exporters and the OpenTelemetry Collector.
+
+The adapter decouples the application from destination-specific formats by running a long-running concurrent background worker that periodically scrapes raw JSON statistics from a foundation service, maps them onto in-memory metrics state, and serializes them on-demand into the standard Prometheus exposition format.
+
+> 📂 **Source Code:** [`/metrics-adapter`](https://github.com/vats-24/distributed-systems-learnings/tree/main/metrics-adapter)
+
+### Architecture
+
+```text
+Foundation Service (JSON) ---> [Every 10s Ticker] ---> Metrics Adapter (Translation) ---> /metrics (Prometheus Format) ---> Prometheus Server (Pull)
+
+```
+
+### Design Intent: Why HTTP Pull over gRPC Streaming?
+
+While gRPC feels modern for systems engineering, Prometheus fundamentally utilizes a **pull-based observability model**. Designing this adapter as an HTTP-scraping exporter matches the structural design principles of standard telemetry collector sidecars, making pull-based polling the architecturally correct choice over persistent RPC streams.
+
+### Core Features
+
+- **Interface Normalization:** Keeps the core application completely agnostic of downstream monitoring backends (e.g., Prometheus, Datadog) by consuming a single JSON telemetry contract.
+- **In-Memory Time-Series Modeling:** Rather than simply manipulating strings, metrics are modeled as live, thread-safe state objects (Counters vs. Gauges with structural multi-dimensional Labels) continuously updated over time.
+- **Periodic Worker Scheduling:** Implements a background goroutine driven by a Go `time.Ticker` executing an isolated scrape-and-normalize loop every 10 seconds.
+- **On-Demand Serialization:** Serves a `/metrics` endpoint that captures an instantaneous runtime snapshot of the in-memory metric store and dynamically converts it into the exact line-oriented Prometheus text exposition format.
+
+---
+
 ## 🧠 Key Engineering Takeaways
 
-Building these infrastructure pieces in less than 200 lines of code each highlighted that systems complexity comes from reasoning about state and failure boundaries rather than code volume:
+Building these infrastructure pieces highlights that systems complexity comes from reasoning about state, interfaces, and failure boundaries rather than raw lines of code:
 
-- **Concurrency vs. Performance:** Eliminating race conditions using mutexes and utilizing read-write locks (`RWMutex`) to keep data-lookup paths non-blocking.
-- **Asynchronous Coordination:** Utilizing Go channels and `context` for clean timeout and cancellation propagation.
-- **Algorithmic Infrastructure:** Shifting perspective from simply _using_ pre-built load balancers to understanding low-level proxy mechanics, header manipulation, and network coordination.
+- **Interface Normalization & Interoperability:** Designing systems where producer applications emit single contracts, leaving transport format conversion (like JSON to Prometheus text protocol) to decoupled adapter layers.
+- **Concurrency vs. Performance:** Eliminating race conditions using mutexes, implementing read-write locks (`RWMutex`) to keep data-lookup paths non-blocking, and maintaining background goroutine workers driven by time tickers.
+- **State Snapshotting:** Reasoning about live, in-memory states (like a metrics registry or a hash ring) versus their serialization/transport layers (like an HTTP response or a network payload).
+- **Asynchronous Coordination:** Utilizing Go channels and `context` for clean timeout, lifecycle management, and cancellation propagation.
+
+```
+
+```
